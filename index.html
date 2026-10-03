@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Video Downloader — YouTube, Instagram, TikTok, Facebook, Kuaishou</title>
 <meta name="description" content="YouTube, Instagram, TikTok, Facebook aur Kuaishou videos free me download karo — har platform ka alag page.">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2864116801129455" crossorigin="anonymous"></script>
+<meta name="monetag" content="ffcc44b2740decb8991cf6e29ca6c25d">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -116,8 +116,16 @@
 </div>
 
 <script>
-const API = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
-  ? '' : 'http://127.0.0.1:8080';
+const REMOTE_BACKEND = 'https://video-downloader-backend-1oo3.onrender.com'; // Online backend (Render, free)
+let API = 'http://127.0.0.1:8080';
+let backendMode = '';
+
+function fetchTimeout(url, ms, opts) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return fetch(url, Object.assign({}, opts, { signal: c.signal }))
+    .finally(() => clearTimeout(t));
+}
 
 const PLATFORMS = [
   { key: 'youtube',   name: 'YouTube',   color: '#ff0033', glow: 'rgba(255,0,51,.35)',
@@ -214,18 +222,46 @@ function fmtDur(s) {
 }
 
 async function checkBackend() {
+  const dot = $('dot'), txt = $('statusText');
+  const setOff = () => {
+    dot.className = 'dot off';
+    txt.textContent = 'Backend band hai';
+    $('setupBox').classList.add('show');
+  };
+  // Site khud phone se serve ho rahi hai (Termux) → same origin
+  if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+    API = ''; backendMode = 'phone';
+    dot.className = 'dot on';
+    txt.textContent = 'Backend chal raha hai (phone)';
+    $('setupBox').classList.remove('show');
+    return true;
+  }
+  // Pehle phone ka backend try karo (tez + reliable)
   try {
-    const r = await fetch(API + '/api/ping', { cache: 'no-store' });
+    const r = await fetchTimeout('http://127.0.0.1:8080/api/ping', 2500);
     if (r.ok) {
-      $('dot').className = 'dot on';
-      $('statusText').textContent = 'Backend chal raha hai — taiyaar ho';
+      API = 'http://127.0.0.1:8080'; backendMode = 'phone';
+      dot.className = 'dot on';
+      txt.textContent = 'Phone backend se connected (tez)';
       $('setupBox').classList.remove('show');
       return true;
     }
   } catch (e) {}
-  $('dot').className = 'dot off';
-  $('statusText').textContent = 'Backend band hai';
-  $('setupBox').classList.add('show');
+  // Phir online backend try karo
+  if (REMOTE_BACKEND) {
+    try {
+      const r = await fetchTimeout(REMOTE_BACKEND + '/api/ping', 12000);
+      if (r.ok) {
+        API = REMOTE_BACKEND; backendMode = 'online';
+        dot.className = 'dot on';
+        txt.textContent = 'Online backend se connected hai';
+        $('setupBox').classList.remove('show');
+        return true;
+      }
+    } catch (e) {}
+  }
+  API = 'http://127.0.0.1:8080';
+  setOff();
   return false;
 }
 checkBackend();
