@@ -21,6 +21,7 @@ TikTok, Facebook, Instagram, YouTube aur Kuaishou videos free me download karo.
    Ya website kholo: **https://sk9910084.github.io/video-downloader**
 
 Bas! Ab video ka link paste karo → Dekho dabao → quality chuno → Download karo.
+Har platform ke page par **📝 Transcript** ka button bhi hai — video ke captions/transcript nikaal kar copy karo.
 
 > Note: Termux background me chalta rehna chahiye jab tak download ho raha ho.
 > Server band karne ke liye Termux me `VolumeDown + C` dabao.

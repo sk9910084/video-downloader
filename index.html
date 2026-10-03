@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Downloader — YouTube, Instagram, TikTok, Facebook, Kuaishou</title>
+<meta name="description" content="YouTube, Instagram, TikTok, Facebook aur Kuaishou videos free me download karo — har platform ka alag page.">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: #0f1222; color: #eef0ff; min-height: 100vh; }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { text-align: center; padding: 24px 0 14px; }
+  header h1 { font-size: 26px; background: linear-gradient(90deg,#7c6bff,#00d4ff);
+              -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { color: #9aa0c7; font-size: 14px; margin-top: 6px; }
+  .status { display: flex; align-items: center; gap: 8px; justify-content: center;
+            font-size: 13px; margin: 2px 0 14px; color: #9aa0c7; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+  .dot.on { background: #2fe08c; box-shadow: 0 0 8px #2fe08c; }
+  .dot.off { background: #ff5d5d; box-shadow: 0 0 8px #ff5d5d; }
+  .tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 12px; margin-bottom: 6px;
+          scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 1 0 auto; padding: 10px 16px; border-radius: 12px; border: 1px solid #2a2f55;
+         background: #171b33; color: #9aa0c7; font-size: 14px; font-weight: 600; cursor: pointer;
+         white-space: nowrap; transition: all .2s; }
+  .tab.active { color: #fff; border-color: var(--pc); background: #1d2140;
+                box-shadow: 0 0 12px var(--pg); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card { background: #171b33; border: 1px solid #2a2f55; border-top: 3px solid var(--pc);
+          border-radius: 16px; padding: 18px; }
+  .plat-title { font-size: 19px; font-weight: 700; color: var(--pc); margin-bottom: 4px; }
+  .plat-hint { font-size: 13px; color: #9aa0c7; margin-bottom: 14px; }
+  label { font-size: 13px; color: #9aa0c7; display: block; margin-bottom: 8px; }
+  .row { display: flex; gap: 8px; }
+  input[type=text] { flex: 1; padding: 13px 14px; border-radius: 12px; border: 1px solid #2a2f55;
+                     background: #0f1222; color: #fff; font-size: 15px; outline: none; min-width: 0; }
+  input[type=text]:focus { border-color: var(--pc); }
+  button { cursor: pointer; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; }
+  .btn-go { padding: 13px 20px; background: var(--pc); color: #fff; white-space: nowrap; }
+  .btn-go:disabled { opacity: .5; cursor: wait; }
+  .btn-dl { width: 100%; padding: 14px; margin-top: 12px; background: var(--pc);
+            color: #fff; font-size: 16px; }
+  .btn-dl:disabled { opacity: .5; cursor: wait; }
+  .btn-tr { width: 100%; padding: 13px; margin-top: 10px; background: transparent;
+            color: var(--pc); font-size: 15px; border: 1.5px solid var(--pc); }
+  .btn-tr:disabled { opacity: .5; cursor: wait; }
+  .transcript { display: none; margin-top: 14px; border: 1px solid #2a2f55;
+               border-radius: 12px; overflow: hidden; }
+  .transcript.show { display: block; }
+  .trans-head { display: flex; justify-content: space-between; align-items: center;
+               padding: 10px 12px; background: #1d2140; font-size: 14px; font-weight: 600; }
+  .trans-head button { padding: 6px 14px; font-size: 13px; border-radius: 8px;
+                      background: var(--pc); color: #fff; }
+  .trans-body { max-height: 280px; overflow-y: auto; padding: 12px; font-size: 14px;
+               line-height: 1.7; color: #d6d9f5; white-space: pre-wrap; background: #0f1222; }
+  .trans-meta { font-size: 12px; color: #9aa0c7; padding: 8px 12px; background: #141838; }
+  select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #2a2f55;
+           background: #0f1222; color: #fff; font-size: 15px; margin-top: 12px; }
+  .info { display: none; margin-top: 16px; }
+  .info.show { display: block; }
+  .thumb { width: 100%; border-radius: 12px; max-height: 260px; object-fit: cover; background: #0f1222; }
+  .title { font-size: 15px; font-weight: 600; margin: 10px 0 4px; }
+  .meta { font-size: 13px; color: #9aa0c7; }
+  .progress { display: none; margin-top: 14px; }
+  .progress.show { display: block; }
+  .bar { height: 10px; background: #0f1222; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+  .bar > div { height: 100%; width: 0%; background: var(--pc); transition: width .3s; }
+  .ptext { font-size: 13px; color: #9aa0c7; }
+  .err { display: none; margin-top: 12px; padding: 12px; border-radius: 12px;
+         background: #3a1620; border: 1px solid #7a2438; color: #ffb3c1; font-size: 14px; }
+  .err.show { display: block; }
+  .setup { display: none; margin-top: 16px; }
+  .setup.show { display: block; }
+  .setup ol { margin: 10px 0 0 18px; font-size: 14px; color: #c9cdf2; line-height: 1.9; }
+  .setup code { background: #0f1222; padding: 2px 8px; border-radius: 6px; font-size: 13px; color: #00d4ff; }
+  footer { text-align: center; color: #5b608f; font-size: 12px; margin-top: 34px; line-height: 1.7; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff3;
+          border-top-color: #fff; border-radius: 50%; animation: s 0.7s linear infinite; vertical-align: -2px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>⬇ Video Downloader</h1>
+    <p>Har platform ka alag page — bilkul free</p>
+  </header>
+
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">Backend check ho raha hai…</span></div>
+
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+
+  <div class="setup card" id="setupBox" style="margin-top:16px; background:#141838; border-top:3px solid #ffd27a;">
+    <label style="color:#ffd27a;">⚙ Backend band hai — 10 minute ka setup (ek baar)</label>
+    <ol>
+      <li><b>F-Droid</b> app se <b>Termux</b> install karo (Play Store wala purana hai)</li>
+      <li>Termux kholo aur ye ek command paste karke Enter dabao:<br>
+        <code>curl -sL https://sk9910084.github.io/video-downloader/setup-termux.sh | bash</code></li>
+      <li>Install hone ke baad ye site dobara kholo — har page kaam karega</li>
+    </ol>
+  </div>
+
+  <footer>
+    100% free • Koi account nahi • Koi limit nahi<br>
+    Video tumhare apne phone par download hoti hai, kisi server par nahi jaati.
+  </footer>
+</div>
+
+<script>
+const API = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
+  ? '' : 'http://127.0.0.1:8080';
+
+const PLATFORMS = [
+  { key: 'youtube',   name: 'YouTube',   color: '#ff0033', glow: 'rgba(255,0,51,.35)',
+    hint: 'Video aur Shorts dono chalte hain', ph: 'https://youtube.com/watch?v=… ya youtu.be/…' },
+  { key: 'instagram', name: 'Instagram', color: '#e1306c', glow: 'rgba(225,48,108,.35)',
+    hint: 'Reels, posts aur IGTV', ph: 'https://instagram.com/reel/…' },
+  { key: 'tiktok',    name: 'TikTok',    color: '#00d4c8', glow: 'rgba(0,212,200,.30)',
+    hint: 'TikTok videos — best quality chuno', ph: 'https://tiktok.com/@…/video/…' },
+  { key: 'facebook',  name: 'Facebook',  color: '#1877f2', glow: 'rgba(24,119,242,.35)',
+    hint: 'Public Facebook videos', ph: 'https://facebook.com/watch/…' },
+  { key: 'kuaishou',  name: 'Kuaishou',  color: '#ff6a00', glow: 'rgba(255,106,0,.35)',
+    hint: 'Kuaishou / Kwai videos', ph: 'https://kuaishou.com/…' },
+];
+
+const $ = id => document.getElementById(id);
+
+// Tabs + panels banao
+const tabsEl = $('tabs'), panelsEl = $('panels');
+PLATFORMS.forEach((p, i) => {
+  const t = document.createElement('button');
+  t.className = 'tab' + (i === 0 ? ' active' : '');
+  t.textContent = p.name;
+  t.style.setProperty('--pc', p.color);
+  t.style.setProperty('--pg', p.glow);
+  t.onclick = () => selectTab(p.key);
+  t.id = 'tab-' + p.key;
+  tabsEl.appendChild(t);
+
+  const d = document.createElement('div');
+  d.className = 'panel' + (i === 0 ? ' active' : '');
+  d.id = 'panel-' + p.key;
+  d.style.setProperty('--pc', p.color);
+  d.style.setProperty('--pg', p.glow);
+  d.innerHTML = `
+    <div class="card">
+      <div class="plat-title">${p.name} Downloader</div>
+      <div class="plat-hint">${p.hint}</div>
+      <label>${p.name} video ka link yahan paste karo</label>
+      <div class="row">
+        <input type="text" id="url-${p.key}" placeholder="${p.ph}" autocomplete="off">
+        <button class="btn-go" id="go-${p.key}" onclick="fetchInfo('${p.key}')">Dekho</button>
+      </div>
+      <div class="err" id="err-${p.key}"></div>
+      <div class="info" id="info-${p.key}">
+        <img class="thumb" id="thumb-${p.key}" alt="">
+        <div class="title" id="vtitle-${p.key}"></div>
+        <div class="meta" id="vmeta-${p.key}"></div>
+        <select id="quality-${p.key}"></select>
+        <button class="btn-dl" id="dl-${p.key}" onclick="startDownload('${p.key}')">⬇ Download karo</button>
+        <button class="btn-tr" id="tr-${p.key}" onclick="getTranscript('${p.key}')">📝 Transcript nikalo</button>
+      </div>
+      <div class="transcript" id="trans-${p.key}">
+        <div class="trans-head"><span>📝 Transcript</span><button id="copy-${p.key}" onclick="copyTranscript('${p.key}')">Copy</button></div>
+        <div class="trans-meta" id="transmeta-${p.key}"></div>
+        <div class="trans-body" id="transbody-${p.key}"></div>
+      </div>
+      <div class="progress" id="prog-${p.key}">
+        <div class="ptext" id="ptext-${p.key}">Download ho raha hai…</div>
+        <div class="bar"><div id="bar-${p.key}"></div></div>
+      </div>
+    </div>`;
+  panelsEl.appendChild(d);
+});
+
+function selectTab(key) {
+  PLATFORMS.forEach(p => {
+    $('tab-' + p.key).classList.toggle('active', p.key === key);
+    $('panel-' + p.key).classList.toggle('active', p.key === key);
+  });
+  if (history.replaceState) history.replaceState(null, '', '#' + key);
+}
+// Deep link: #instagram wagera
+(function () {
+  const h = (location.hash || '').replace('#', '');
+  if (PLATFORMS.some(p => p.key === h)) selectTab(h);
+})();
+
+function showErr(key, msg) {
+  const el = $('err-' + key);
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+}
+function hideErr(key) { $('err-' + key).classList.remove('show'); }
+function fmtSize(b) {
+  if (!b) return '';
+  if (b > 1048576) return ' (' + (b / 1048576).toFixed(1) + ' MB)';
+  if (b > 1024) return ' (' + Math.round(b / 1024) + ' KB)';
+  return '';
+}
+function fmtDur(s) {
+  if (!s) return '';
+  s = Math.round(s);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+async function checkBackend() {
+  try {
+    const r = await fetch(API + '/api/ping', { cache: 'no-store' });
+    if (r.ok) {
+      $('dot').className = 'dot on';
+      $('statusText').textContent = 'Backend chal raha hai — taiyaar ho';
+      $('setupBox').classList.remove('show');
+      return true;
+    }
+  } catch (e) {}
+  $('dot').className = 'dot off';
+  $('statusText').textContent = 'Backend band hai';
+  $('setupBox').classList.add('show');
+  return false;
+}
+checkBackend();
+
+async function fetchInfo(key) {
+  hideErr(key);
+  const url = $('url-' + key).value.trim();
+  if (!url) return showErr(key, 'Pehle video ka link paste karo.');
+  const btn = $('go-' + key);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>';
+  $('info-' + key).classList.remove('show');
+  try {
+    const r = await fetch(API + '/api/info?url=' + encodeURIComponent(url));
+    const d = await r.json();
+    if (!d.ok && d.error) throw new Error(d.error);
+    const info = d.info;
+    $('thumb-' + key).src = info.thumbnail || '';
+    $('vtitle-' + key).textContent = info.title || 'Video';
+    $('vmeta-' + key).textContent = [info.uploader, fmtDur(info.duration)].filter(Boolean).join(' • ');
+    const q = $('quality-' + key);
+    q.innerHTML = '';
+    const best = document.createElement('option');
+    best.value = 'best|0';
+    best.textContent = '⭐ Best quality (auto)';
+    q.appendChild(best);
+    (info.formats || []).forEach(f => {
+      const o = document.createElement('option');
+      o.value = f.format_id + '|0';
+      o.textContent = f.quality + ' • ' + f.ext.toUpperCase() + fmtSize(f.size);
+      q.appendChild(o);
+    });
+    const mp3 = document.createElement('option');
+    mp3.value = '|1';
+    mp3.textContent = '🎵 Sirf audio (MP3)';
+    q.appendChild(mp3);
+    $('info-' + key).classList.add('show');
+  } catch (e) {
+    showErr(key, 'Video ki jaankari nahi mil payi. Link sahi hai? Kuch videos (private/login wali) download nahi hoti.');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Dekho';
+}
+
+async function startDownload(key) {
+  hideErr(key);
+  const url = $('url-' + key).value.trim();
+  const parts = $('quality-' + key).value.split('|');
+  const btn = $('dl-' + key);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Taiyaar ho raha hai…';
+  $('prog-' + key).classList.add('show');
+  $('bar-' + key).style.width = '0%';
+  $('ptext-' + key).textContent = 'Download shuru ho raha hai…';
+  try {
+    const r = await fetch(API + '/api/job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, format_id: parts[0] || null, mp3: parts[1] === '1' })
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Job start nahi hua');
+    pollJob(key, d.job_id);
+  } catch (e) {
+    showErr(key, e.message);
+    btn.disabled = false;
+    btn.textContent = '⬇ Download karo';
+    $('prog-' + key).classList.remove('show');
+  }
+}
+
+async function getTranscript(key) {
+  hideErr(key);
+  const url = $('url-' + key).value.trim();
+  if (!url) return showErr(key, 'Pehle video ka link paste karo.');
+  const btn = $('tr-' + key);
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Transcript nikal raha hai…';
+  $('trans-' + key).classList.remove('show');
+  try {
+    const r = await fetch(API + '/api/transcript?url=' + encodeURIComponent(url));
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || 'Transcript nahi mila');
+    const t = d.transcript;
+    $('transmeta-' + key).textContent =
+      (t.title || 'Video') + ' • ' + t.lang.toUpperCase() + ' • ' +
+      (t.kind === 'auto-captions' ? 'auto-captions' : 'captions');
+    $('transbody-' + key).textContent = t.text;
+    $('trans-' + key).classList.add('show');
+    $('trans-' + key).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    showErr(key, e.message);
+  }
+  btn.disabled = false;
+  btn.textContent = '📝 Transcript nikalo';
+}
+
+function copyTranscript(key) {
+  const txt = $('transbody-' + key).textContent;
+  const btn = $('copy-' + key);
+  const done = () => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
+  } else {
+    fallbackCopy(txt, done);
+  }
+}
+function fallbackCopy(txt, done) {
+  const ta = document.createElement('textarea');
+  ta.value = txt;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  ta.remove();
+  done();
+}
+
+async function pollJob(key, jid) {  const btn = $('dl-' + key);
+  try {
+    const r = await fetch(API + '/api/job?id=' + jid);
+    const d = await r.json();
+    const job = d.job;
+    if (job.status === 'running') {
+      if (job.progress != null) {
+        $('bar-' + key).style.width = job.progress + '%';
+        $('ptext-' + key).textContent = 'Download ho raha hai… ' + job.progress + '%';
+      } else {
+        $('ptext-' + key).textContent = 'Download ho raha hai…';
+      }
+      setTimeout(() => pollJob(key, jid), 1500);
+    } else if (job.status === 'done') {
+      $('bar-' + key).style.width = '100%';
+      $('ptext-' + key).textContent = 'Ho gaya! File aa rahi hai…';
+      const a = document.createElement('a');
+      a.href = API + '/api/file?id=' + jid;
+      a.download = '';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      btn.disabled = false;
+      btn.textContent = '⬇ Download karo';
+      setTimeout(() => $('prog-' + key).classList.remove('show'), 4000);
+    } else {
+      throw new Error(job.error || 'Download fail ho gaya');
+    }
+  } catch (e) {
+    showErr(key, 'Download me dikkat: ' + e.message + ' — dobara try karo.');
+    btn.disabled = false;
+    btn.textContent = '⬇ Download karo';
+    $('prog-' + key).classList.remove('show');
+  }
+}
+</script>
+</body>
+</html>
